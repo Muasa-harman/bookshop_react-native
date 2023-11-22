@@ -1,21 +1,48 @@
-import { StatusBar } from 'expo-status-bar';
-import React from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { View, Text } from 'react-native';
+import { NativeWindStyleSheet } from "nativewind";
+import { NavigationContainer, useNavigation } from '@react-navigation/native';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import { HomeScreen, OnBoardingScreen, ProductScreen,CartScreen } from './screens';
+import { Provider } from 'react-redux';
+import React, { useEffect, useState } from 'react';
+import store from './context/store';
+import { BottomTab } from './components';
 
-export default function App() {
-  return (
-    <View style={styles.container}>
-      <Text>Open up App.js to start working on your app!</Text>
-      <StatusBar style="auto" />
-    </View>
-  );
+const Stack = createNativeStackNavigator();
+
+const MyComponents = ({setActiveScreen}) =>{
+  const navigation = useNavigation()
+
+  useEffect(()=>{
+    const unsubscribe = navigation.addListener("state", ()=>{
+      const currentScreen = navigation.getCurrentRoute().name;
+      setActiveScreen(currentScreen)
+      // console.log("Active Screen:", currentScreen)
+    })
+
+    return unsubscribe
+  },[navigation])
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#fff',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-});
+const App = () => {
+  const [activeScreen,setActiveScreen] = useState("")
+
+
+ 
+  return (
+    <NavigationContainer>
+      <MyComponents setActiveScreen={setActiveScreen}/>
+      <Provider store={store}>
+    <Stack.Navigator screenOptions={{headerShown:false}}>
+      <Stack.Screen name='OnBoarding' component={OnBoardingScreen}/>
+      <Stack.Screen name="Home" component={HomeScreen} />
+      <Stack.Screen name="Product" component={ProductScreen} />
+      <Stack.Screen name='Cart' component={CartScreen}/>
+    </Stack.Navigator>
+      </Provider>
+      {activeScreen !== "OnBoarding" &&  (<BottomTab activeScreen={activeScreen}/>)}
+  </NavigationContainer>
+  )
+}
+
+export default App
